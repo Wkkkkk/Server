@@ -1,0 +1,78 @@
+// Copyright 2017 The Cartographer Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package zhihui.sensor.proto;
+
+import "transform.proto";
+import "google/protobuf/empty.proto";
+
+message OdometryData {
+    transform.proto.Rigid3d pose = 1;
+}
+
+message ImuData {
+    transform.proto.Vector3d linear_acceleration = 1;
+    transform.proto.Vector3d angular_velocity = 2;
+}
+
+message PointCloudData {
+    repeated transform.proto.Vector3f point_data = 1;
+}
+
+message SensorMetadata {
+    int64 timestamp = 1;
+    int32 trajectory_id = 2;
+    string sensor_id = 3;
+    string client_id = 4;
+}
+
+message SensorDataRequest {
+    SensorMetadata sensor_metadata = 1;
+
+    oneof sensor_data {
+        OdometryData odometry_data = 2;
+        ImuData imu_data = 3;
+        PointCloudData point_cloud_data = 4;
+    }
+}
+
+message AddOdometryDataRequest {
+    SensorMetadata sensor_metadata = 1;
+    OdometryData odometry_data = 2;
+}
+
+message AddImuDataRequest {
+    SensorMetadata sensor_metadata = 1;
+    ImuData imu_data = 2;
+}
+
+message AddPointCloudDataRequest {
+    SensorMetadata sensor_metadata = 1;
+    PointCloudData point_cloud_data = 2;
+}
+
+message SensorDataResponse {
+    int32 output = 1;
+}
+
+// Provides information about the gRPC server.
+service Localization {
+    rpc AddSensorData (SensorDataRequest) returns (SensorDataResponse);
+
+    rpc AddOdometryData (stream AddOdometryDataRequest) returns (google.protobuf.Empty);
+    rpc AddImuData (stream AddImuDataRequest) returns (google.protobuf.Empty);
+    rpc AddPointCloudData (stream AddPointCloudDataRequest) returns (google.protobuf.Empty);
+}

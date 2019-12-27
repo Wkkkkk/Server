@@ -1,0 +1,25 @@
+version: '2.3'
+
+services:
+    car1:
+        image: nvidia-docker
+        runtime: nvidia
+        environment:
+          - DISPLAY=unix$DISPLAY
+          - SHOW_WIDGET=true
+          - CARID=1
+          - START_POINT_ID=-1
+          - TARGET_POINT_ID=-1
+          - MAXVELOCITY=10
+        volumes:
+            - /home/zhihui/AutoPlanning:/home/zhihui/AutoPlanning
+            - /tmp/.X11-unix:/tmp/.X11-unix
+            - /etc/machine-id:/etc/machine-id
+        networks:
+          - default
+        ports:
+          - "8080:8080"
+        command:  bash -c "/home/zhihui/AutoPlanning/src/startup"
+networks:
+    default:
+        driver: bridge
