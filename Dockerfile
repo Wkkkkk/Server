@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y \
     tar \
     unzip \
     wget \
-    curl
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 #project-related denpendencies
@@ -44,7 +44,7 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     libgtest-dev \
     clang-5.0 \
-    libc++-dev
+    libc++-dev \
     && rm -rf /var/lib/apt/lists/*
 
 #gcc8
@@ -53,12 +53,12 @@ RUN add-apt-repository -y ppa:jonathonf/gcc && \
     apt-get install -y gcc-8 g++-8 && \
     rm -rf /usr/bin/gcc /usr/bin/g++ && \
     ln -s /usr/bin/g++-8 /usr/bin/g++ && \
-    ln -s /usr/bin/gcc-8 /usr/bin/gcc
+    ln -s /usr/bin/gcc-8 /usr/bin/gcc \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-add-repository 'deb https://apt.kitware.com/ubuntu/ xenial main' && \
     apt-get update && \
-    apt-get install -y --allow-unauthenticated cmake
+    apt-get install -y --allow-unauthenticated cmake \
     && rm -rf /var/lib/apt/lists/*
    
 #3rd party
@@ -69,52 +69,33 @@ RUN git clone https://gitee.com/Will_1989/grpc.git && \
     cd grpc && mkdir build && cd build \
     &&cmake .. && make -j6 && make install
 
+#other libraries
+RUN cd /home/zhihui/library/grpc/third_party/googletest && mkdir build && cd build && cmake .. && make -j6 && make install
+RUN cd /home/zhihui/library/grpc/third_party/gflags && mkdir build && cd build && cmake .. && make -j6 && make install
+RUN cd /home/zhihui/library/grpc/third_party/glog && mkdir build && cd build && cmake .. && make -j6 && make install
+RUN ln -s /usr/local/lib/libz.a /usr/local/lib/libzlibstatic.a
+
+#3rd party
+WORKDIR /home/zhihui/library
 #async_grpc
 RUN git clone https://gitee.com/Will_1989/async_grpc.git && \
     cd async_grpc && mkdir build && cd build \
     && cmake .. && make -j6 && make install
 
-ln -s /usr/local/lib/libz.a /usr/local/lib/libzlibstatic.a
-
 #self
 WORKDIR /home/zhihui/workspace
-RUN git clone https://github.com/Wkkkkk/SpaceCloud.git && \
-    cd SpaceCloud && mkdir build && cd build \
+RUN git clone https://github.com/Wkkkkk/TrafficInfoDriver.git && \
+    cd TrafficInfoDriver && mkdir build && cd build \
     && cmake .. && make -j6
 
 ##################################################
-#pack here
-ENV des=/home/zhihui/workspace/SpaceCloud/bin
-ENV client_exe=$des/client
-ENV server_exe=$des/server
-RUN deplist=$(ldd $client_exe | awk  '{if (match($3,"/")){ printf("%s "),$3 } }') && \
-    cp $deplist $des
-RUN deplist=$(ldd $server_exe | awk  '{if (match($3,"/")){ printf("%s "),$3 } }') && \
-    cp $deplist $des
-
-RUN tar -czvf /home/zhihui/workspace/all.tar.gz $des
-RUN cd /usr/local/lib64 && tar -czvf /home/zhihui/workspace/osgPlugins.tar.gz ./osgPlugins*/*
-
-###################################################
-FROM nvidia/opengl:1.0-glvnd-runtime-ubuntu16.04 as runtime
+FROM ubuntu:16.04 as runtime
 LABEL description="Run container"
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    qt5-default \
-    qttools5-dev-tools \
-    libqt5opengl5-dev
-
-ENV bin_path=/home/zhihui/workspace/SpaceCloud/bin/
+ENV bin_path=/home/zhihui/bin/
 RUN mkdir -p $bin_path
-COPY --from=builder /home/zhihui/workspace/*.tar.gz /home/zhihui/workspace/
+COPY --from=builder /home/zhihui/workspace/TrafficInfoDriver/bin/driver $bin_path
+COPY --from=builder /usr/local/lib/libz.so.1 /usr/local/lib/libz.so.1
 
-RUN tar -xzvf /home/zhihui/workspace/all.tar.gz
-RUN tar -xzvf /home/zhihui/workspace/osgPlugins.tar.gz -C $bin_path
-
-#COPY --from=builder /usr/lib/x86_64-linux-gnu/libQt5DBus.so* /home/Demo/bin/
-#some fixed environment variables
-ENV LD_LIBRARY_PATH=/usr/local/lib64:$bin_path
-
-CMD $bin_path/SpaceCloud
+CMD $bin_path/driver
 
