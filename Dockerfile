@@ -72,7 +72,7 @@ WORKDIR /home/zhihui/library
 #    && git submodule update --init --recursive --remote \
 #    && mkdir build && cd build && cmake .. && make -j6 && make install
 
-RUN git clone --depth 1 https://gitee.com/Will_1989/grpc.git && cd grpc \
+RUN git clone https://gitee.com/Will_1989/grpc.git && cd grpc \
     && git submodule update --init --recursive --remote \
     && cd /home/zhihui/library/grpc && make -j6 && make install && make clean && ldconfig
 
@@ -105,4 +105,3 @@ COPY --from=builder /home/zhihui/workspace/TrafficInfoDriver/bin/driver $bin_pat
 COPY --from=builder /usr/local/lib/libz.so.1 /usr/local/lib/libz.so.1
 
 CMD $bin_path/driver
-
