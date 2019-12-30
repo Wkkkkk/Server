@@ -4,6 +4,7 @@ project(TrafficInfoDriver)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Release CACHE STRING "set build type to Release")
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+set(COPY_OUTPUT_PATH ${EXECUTABLE_OUTPUT_PATH})
 set(Boost_USE_STATIC_LIBS ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")

@@ -95,7 +95,7 @@ CarInfoCollector::CarInfoCollector(boost::asio::io_service &io, size_t interval,
 CarInfoCollector::~CarInfoCollector() { imu_client_.StreamWritesDone(); odometry_client_.StreamWritesDone(); }
 
 void CarInfoCollector::Update() {
-    for(const auto& car : cars_) {
+    for (const auto &car : cars_) {
         auto imu = car->getImuData();
         auto odo = car->getOdometryData();
 
@@ -103,7 +103,7 @@ void CarInfoCollector::Update() {
         odometry_client_.Write(odo);
     }
 
-    LOG_EVERY_N(INFO, 50) <<  "Send Car   info to" << server_address_ << " every " << interval_.total_milliseconds() << "ms.";
+    DLOG(INFO) << "Send Car   info to" << server_address_ << " every " << interval_.total_milliseconds() << "ms.";
 }
 
 PointCloudInfoCollector::PointCloudInfoCollector(boost::asio::io_service &io, size_t interval,
@@ -123,7 +123,7 @@ void PointCloudInfoCollector::Update() {
 
     client_.Write(pc);
 
-    LOG_EVERY_N(INFO, 10) <<  "Send Pointcloud to" << server_address_ << " every " << interval_.total_milliseconds() << "ms.";
+    DLOG(INFO) << "Send Pointcloud to" << server_address_ << " every " << interval_.total_milliseconds() << "ms.";
 }
 
 PointCloudInfoCollector::PointCloudCluster::PointCloudCluster(double center, double range) : generator(center, range) {
