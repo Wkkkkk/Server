@@ -27,10 +27,11 @@ MapSender::MapSender(std::string server_address)
 void MapSender::run() { io_.run(); }
 
 void MapSender::handle_stop() {
+    LOG(INFO) << "MapSender is about to close.";
     // The server is stopped by cancelling all outstanding asynchronous
     // operations. Once all operations have finished the io_context::run()
     // call will exit.
     io_.stop();
 
-    LOG(INFO) <<  "MapSender is gracefully closed.";
+    LOG(INFO) << "MapSender is gracefully closed.";
 }
