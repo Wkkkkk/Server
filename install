@@ -1,0 +1,89 @@
+# basic dependencies
+echo "Finding basic dependencies"
+sudo apt-get install build-essential autoconf libtool pkg-config
+sudo apt-get install libgflags-dev libgtest-dev
+sudo apt-get install clang-5.0 libc++-dev
+sudo apt-get install ninja-build automake
+sudo apt-get install libboost-all-dev
+
+# gcc8
+echo "Installing gcc8"
+add-apt-repository -y ppa:jonathonf/gcc && \
+    apt-get update && \
+    apt-get install -y gcc-8 g++-8 && \
+    rm -rf /usr/bin/gcc /usr/bin/g++ && \
+    ln -s /usr/bin/g++-8 /usr/bin/g++ && \
+    ln -s /usr/bin/gcc-8 /usr/bin/gcc
+rm -rf /var/lib/apt/lists/*
+
+# init directory
+echo "Initializing library directory"
+mkdir -p /home/zhihui/workplace/library
+
+# cmake3.16
+echo "Installing cmake3.16"
+cd /home/zhihui/workplace/library
+git clone https://gitee.com/mirrors/CMake.git
+cd CMake
+./bootstrap && make && sudo make install
+
+# install grpc
+echo "Preparing to install grpc"
+cd /home/zhihui/workplace/library
+git clone https://gitee.com/Will_1989/grpc.git
+cd grpc
+git submodule update --init
+echo "Got all submodules"
+## install gflags
+echo "Installing gflags"
+cd third_party/gflags
+mkdir build && cd build
+cmake .. -DGFLAGS_NAMESPACE=google -DCMAKE_CXX_FLAGS=-fPIC ..
+make -j6
+sudo make install
+## install glog
+echo "Installing glog"
+cd /home/zhihui/workplace/library
+git clone https://gitee.com/Will_1989/glog.git
+cd glog
+./autogen.sh
+./configure CPPFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib"
+make -j6
+sudo make install
+## install googletest
+echo "Installing gtest"
+cd /home/zhihui/workplace/library/grpc/third_party/googletest
+mkdir build && cd build
+cmake ..
+make -j6
+sudo make install
+## fix libz
+echo "fixing static libz.a"
+ln -s /usr/local/lib/libz.a /usr/local/lib/libzlibstatic.a
+# build grpc
+echo "Building grpc"
+cd /home/zhihui/workplace/library/grpc
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release  -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DgRPC_SSL_PROVIDER=package ..
+make -j6
+sudo make install
+echo "grpc done"
+
+# install async_grpc
+echo "Installing async_grpc"
+cd /home/zhihui/workplace/library
+git clone https://gitee.com/Will_1989/async_grpc.git
+cd async_grpc && mkdir build && cd build
+cmake .. && make -j6 && make install
+
+# install project
+echo "Building project"
+cd /home/zhihui/workplace/
+git clone https://github.com/Wkkkkk/TrafficInfoDriver.git
+cd TrafficInfoDriver && mkdir build && cd build
+cmake .. && make -j6
+
+
+echo "*************"
+echo "everything is done!"
+echo "*************"

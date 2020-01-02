@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     apt-transport-https \
     build-essential \
+    libssl-dev \
     mesa-utils \
     glmark2 \
     cmake \
@@ -66,12 +67,12 @@ RUN apt-add-repository 'deb https://apt.kitware.com/ubuntu/ xenial main' && \
    
 #3rd party
 WORKDIR /home/zhihui/library
+#CMake
+RUN git clone https://gitee.com/mirrors/CMake.git \
+    && cd CMake && ./bootstrap && make -j6 && make install
 
+WORKDIR /home/zhihui/library
 #grpc from local repository
-#RUN git clone --depth 1 https://gitee.com/Will_1989/grpc.git && cd grpc \
-#    && git submodule update --init --recursive --remote \
-#    && mkdir build && cd build && cmake .. && make -j6 && make install
-
 RUN git clone https://gitee.com/Will_1989/grpc.git && cd grpc \
     && git submodule update --init --recursive --remote \
     && cd /home/zhihui/library/grpc && make -j6 && make install && make clean && ldconfig
