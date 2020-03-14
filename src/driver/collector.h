@@ -11,12 +11,14 @@
 #include <async_grpc/client.h>
 
 #include "updater.h"
-#include "handlers/add_pointcloud_handler.h"
-#include "handlers/add_imu_handler.h"
-#include "handlers/add_odometry_handler.h"
+#include "handlers/login_handler.h"
+#include "handlers/update_position_handler.h"
+#include "handlers/upload_pointcloud_handler.h"
+#include "handlers/get_instructions_handler.h"
+#include "handlers/bidirectional_test.h"
 
 namespace driver {
-    using namespace zhihui::sensor;
+    using namespace zhihui::test;
 
     struct Vec3 {
         double x, y, z;
@@ -67,8 +69,7 @@ namespace driver {
 
         void Update() final;
 
-        proto::AddOdometryDataRequest getOdometryData();
-        proto::AddImuDataRequest getImuData();
+        proto::UpdatePositionRequest getPosition();
 
     private:
         size_t id_;
@@ -90,8 +91,7 @@ namespace driver {
         void Update() final;
 
     private:
-        async_grpc::Client<message::handler::AddImuDataSignature> imu_client_;
-        async_grpc::Client<message::handler::AddOdometryDataSignature> odometry_client_;
+        async_grpc::Client<message::handler::UpdatePositionSignature> client_;
 
         const std::string& server_address_;
         std::vector<std::unique_ptr<Car>> cars_;
@@ -103,7 +103,7 @@ namespace driver {
         public:
             explicit PointCloudCluster(double center, double range);
 
-            proto::AddPointCloudDataRequest getPointCloudData();
+            proto::UploadPointCloudRequest getPointCloudData();
 
         private:
             Vec3 getNewPoint();
@@ -122,7 +122,7 @@ namespace driver {
         const std::string& server_address_;
 
         size_t index_ = 0;
-        async_grpc::Client<message::handler::AddPointCloudDataSignature> client_;
+        async_grpc::Client<message::handler::UploadPointCloudSignature> client_;
     };
 }
 

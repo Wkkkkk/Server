@@ -7,6 +7,10 @@
 #include "data_context_interface.h"
 
 #include "data_server.h"
+#include "handlers/login_handler.h"
+#include "handlers/update_position_handler.h"
+#include "handlers/get_instructions_handler.h"
+#include "handlers/bidirectional_test.h"
 
 using namespace server;
 using namespace message::handler;
@@ -17,9 +21,10 @@ DataServer::DataServer() {
     server_builder.SetNumGrpcThreads(kNumThreads);
     server_builder.SetNumEventThreads(kNumThreads);
 
-    server_builder.RegisterHandler<AddSensordataHandler>();
-    server_builder.RegisterHandler<AddOdometryHandler>();
-    server_builder.RegisterHandler<AddPointCloudHandler>();
+    server_builder.RegisterHandler<LoginHandler>();
+    server_builder.RegisterHandler<UpdatePositionHandler>();
+    server_builder.RegisterHandler<GetInstructionsHandler>();
+    server_builder.RegisterHandler<BidirectionalTest>();
     grpc_server_ = server_builder.Build();
 
     grpc_server_->SetExecutionContext(std::make_unique<DataContextInterface>(this));
@@ -54,18 +59,18 @@ void DataServer::initSlamThread() {
                 auto now = std::chrono::system_clock::now();
                 std::time_t t = std::chrono::system_clock::to_time_t(now);
 
-                for (;;) {
-                    std::unique_ptr<proto::SensorDataRequest> sensor_data =
-                            incoming_data_queue_.PopWithTimeout(std::chrono::milliseconds(100)); // ms
-                    if (sensor_data) {
-                        proto::SensorMetadata metadata = sensor_data->sensor_metadata();
-                        proto::PointCloudData pointcloud_data = sensor_data->point_cloud_data();
-
-                        auto index = metadata.trajectory_id();
-                        LOG(INFO) << "index: " << index << " size: " << pointcloud_data.point_data_size();
-                    } else {
-                        std::cout << "0" << std::endl;
-                    }
-                }
+//                for (;;) {
+//                    std::unique_ptr<proto::SensorDataRequest> sensor_data =
+//                            incoming_data_queue_.PopWithTimeout(std::chrono::milliseconds(100)); // ms
+//                    if (sensor_data) {
+//                        proto::SensorMetadata metadata = sensor_data->sensor_metadata();
+//                        proto::PointCloudData pointcloud_data = sensor_data->point_cloud_data();
+//
+//                        auto index = metadata.trajectory_id();
+//                        LOG(INFO) << "index: " << index << " size: " << pointcloud_data.point_data_size();
+//                    } else {
+//                        std::cout << "0" << std::endl;
+//                    }
+//                }
             });
 }

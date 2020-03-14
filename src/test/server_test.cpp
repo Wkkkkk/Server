@@ -12,19 +12,20 @@
 
 #include "data_server.h"
 #include "data_context_interface.h"
-#include "handlers/add_sensordata_handler.h"
-#include "handlers/add_odometry_handler.h"
-#include "handlers/add_pointcloud_handler.h"
+#include "handlers/login_handler.h"
+#include "handlers/update_position_handler.h"
+#include "handlers/get_instructions_handler.h"
+#include "handlers/bidirectional_test.h"
 
 namespace server {
-        using namespace message::handler;
-        using namespace async_grpc;
+    using namespace message::handler;
+    using namespace async_grpc;
 
-class ServerTest : public ::testing::Test {
-protected:
-    void SetUp() override {
-        server_ = std::make_unique<DataServer>();
-        client_channel_ = ::grpc::CreateChannel(
+    class ServerTest : public ::testing::Test {
+    protected:
+        void SetUp() override {
+            server_ = std::make_unique<DataServer>();
+            client_channel_ = ::grpc::CreateChannel(
                 kTestingServerAddress, ::grpc::InsecureChannelCredentials());
 
         server_->Start();
@@ -36,38 +37,67 @@ protected:
 
     std::unique_ptr<DataServer> server_;
     std::shared_ptr<::grpc::Channel> client_channel_;
-};
+    };
 
-TEST_F(ServerTest, StartAndStopServerTest) {}
+    TEST_F(ServerTest, StartAndStopServerTest) {}
 
-TEST_F(ServerTest, ProcessUnaryRpcTest) {
-    Client<AddSensorDataSignature> client(client_channel_);
-    proto::SensorDataRequest request;
-    request.mutable_sensor_metadata()->set_trajectory_id(11);
-    EXPECT_TRUE(client.Write(request));
-    EXPECT_EQ(client.response().output(), 12);
-}
-
-TEST_F(ServerTest, ProcessRpcStreamTest) {
-    Client<AddOdometryDataSignature> client(client_channel_);
-    for (int i = 0; i < 3; ++i) {
-        proto::AddOdometryDataRequest request;
-        request.mutable_sensor_metadata()->set_trajectory_id(i);
+    TEST_F(ServerTest, ProcessUnaryRpcTest) {
+        Client<LoginSignature> client(client_channel_);
+        proto::LoginRequest request;
+        request.mutable_metadata()->set_client_id("test");
+        request.set_log_information("Hello");
         EXPECT_TRUE(client.Write(request));
+        EXPECT_EQ(client.response().check_information(), "Hello");
     }
-    EXPECT_TRUE(client.StreamWritesDone());
-    EXPECT_TRUE(client.StreamFinish().ok());
-    EXPECT_EQ(client.response().GetDescriptor()->name(), "Empty");
-}
 
-TEST_F(ServerTest, RetryWithUnrecoverableError) {
-    Client<AddSensorDataSignature> client(
-            client_channel_, common::FromSeconds(5),
-            CreateUnlimitedConstantDelayStrategy(common::FromSeconds(1),
-                                                 {::grpc::INTERNAL}));
-    proto::SensorDataRequest request;
-    request.mutable_sensor_metadata()->set_trajectory_id(-11);
-    EXPECT_FALSE(client.Write(request));
-}
+    TEST_F(ServerTest, RetryWithUnrecoverableError) {
+        Client<LoginSignature> client(
+                client_channel_, common::FromSeconds(5),
+                CreateUnlimitedConstantDelayStrategy(common::FromSeconds(1),
+                                                     {::grpc::INTERNAL}));
+        proto::LoginRequest request;
+        request.mutable_metadata()->set_client_id("");
+        EXPECT_FALSE(client.Write(request));
+    }
 
+    TEST_F(ServerTest, ProcessRpcClientStreamTest) {
+        Client<UpdatePositionSignature> client(client_channel_);
+        for (int i = 0; i < 3; ++i) {
+            proto::UpdatePositionRequest request;
+            EXPECT_TRUE(client.Write(request));
+        }
+        EXPECT_TRUE(client.StreamWritesDone());
+        EXPECT_TRUE(client.StreamFinish().ok());
+        EXPECT_EQ(client.response().GetDescriptor()->name(), "Empty");
+    }
+
+    TEST_F(ServerTest, ProcessRpcServerStreamTest) {
+        Client<GetInstructionsSignature> client(client_channel_);
+        proto::LoginRequest request;
+        request.mutable_metadata()->set_client_id("Hello");
+        EXPECT_TRUE(client.Write(request));
+
+        int count = 0;
+        proto::InstructionResponse response;
+        for (int i = 0; i < 3; ++i) {
+            EXPECT_TRUE(client.StreamRead(&response));
+            EXPECT_EQ(response.timestamp(), count++);
+        }
+    }
+
+    TEST_F(ServerTest, ProcessRpcBidirectionalTest) {
+        Client<BidirectionalTestSignature> client(client_channel_);
+
+        for (int i = 0; i < 10; ++i) {
+            proto::testMessage request;
+            request.set_index(i);
+            EXPECT_TRUE(client.Write(request));
+
+            proto::testMessage response;
+            EXPECT_TRUE(client.StreamRead(&response));
+            EXPECT_EQ(response.index(), i + 1);
+        }
+        EXPECT_TRUE(client.StreamWritesDone());
+        EXPECT_TRUE(client.StreamFinish().ok());
+    }
 }

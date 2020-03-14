@@ -20,7 +20,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(message C CXX)
-set(MESSAGE_PROTO transform localization)
+set(MESSAGE_PROTO test)
 file(GLOB_RECURSE SOURCES_CXX *.cpp *.h)
 
 set(hw_proto_srcs_list "")
@@ -42,7 +42,7 @@ foreach (message_name ${MESSAGE_PROTO})
             COMMAND ${_PROTOBUF_PROTOC}
             ARGS --grpc_out "generate_mock_code=true:${CMAKE_CURRENT_BINARY_DIR}"
             --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
-            -I "${hw_proto_path}"
+            -I "${hw_proto_path}" -I "${Protobuf_INCLUDE_DIRS}"
             --plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
             "${hw_proto}"
             DEPENDS "${hw_proto}")

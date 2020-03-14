@@ -11,13 +11,6 @@
 #include <async_grpc/server.h>
 
 #include "blocking_queue.h"
-#include "handlers/add_sensordata_handler.h"
-#include "handlers/add_odometry_handler.h"
-#include "handlers/add_pointcloud_handler.h"
-
-namespace zhihui::sensor::proto {
-    class SensorDataRequest;
-}
 
 namespace server {
     class DataServer {
@@ -36,7 +29,7 @@ namespace server {
         std::unique_ptr<std::thread> slam_thread_;
         std::unique_ptr<async_grpc::Server> grpc_server_;
 
-        core::BlockingQueue<std::unique_ptr<zhihui::sensor::proto::SensorDataRequest>> incoming_data_queue_;
+//        core::BlockingQueue<std::unique_ptr<zhihui::sensor::proto::SensorDataRequest>> incoming_data_queue_;
     };
 }
 

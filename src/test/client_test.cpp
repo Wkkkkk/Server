@@ -7,9 +7,7 @@
 #include <async_grpc/client.h>
 #include <async_grpc/retry.h>
 
-#include "handlers/add_sensordata_handler.h"
-#include "handlers/add_odometry_handler.h"
-#include "handlers/add_pointcloud_handler.h"
+#include "handlers/login_handler.h"
 
 #include "glog/logging.h"
 #include "gtest/gtest.h"
@@ -21,23 +19,23 @@ namespace driver {
 
         using namespace grpc;
         using namespace async_grpc;
-        using namespace zhihui::sensor;
+        using namespace zhihui::test;
 
         TEST(ClientTest, TimesOut) {
             auto client_channel = CreateChannel(kWrongAddress, InsecureChannelCredentials());
-            Client<message::handler::AddSensorDataSignature, ::grpc::internal::RpcMethod::NORMAL_RPC>
+            Client<message::handler::LoginSignature, ::grpc::internal::RpcMethod::NORMAL_RPC>
                     client(client_channel, common::FromSeconds(0.1));
-            proto::SensorDataRequest request;
+            proto::LoginRequest request;
             Status status;
             EXPECT_FALSE(client.Write(request, &status));
         }
 
         TEST(ClientTest, TimesOutWithRetries) {
             auto client_channel = CreateChannel(kWrongAddress, ::grpc::InsecureChannelCredentials());
-            Client<message::handler::AddSensorDataSignature, ::grpc::internal::RpcMethod::NORMAL_RPC>
+            Client<message::handler::LoginSignature, ::grpc::internal::RpcMethod::NORMAL_RPC>
                     client(client_channel, common::FromSeconds(0.5),
                            CreateLimitedBackoffStrategy(common::FromSeconds(0.1), 1, 3));
-            proto::SensorDataRequest request;
+            proto::LoginRequest request;
             Status status;
             EXPECT_FALSE(client.Write(request, &status));
         }

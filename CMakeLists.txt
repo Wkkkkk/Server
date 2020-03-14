@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(TrafficInfoDriver)
+project(Server)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Release CACHE STRING "set build type to Release")
@@ -15,7 +15,7 @@ find_package(Boost COMPONENTS thread date_time iostreams serialization chrono at
 
 set(protobuf_MODULE_COMPATIBLE TRUE)
 find_package(Protobuf CONFIG REQUIRED)
-message(STATUS "Using protobuf ${protobuf_VERSION}")
+message(STATUS "Using protobuf ${Protobuf_VERSION} ${Protobuf_INCLUDE_DIRS} ssss")
 set(_PROTOBUF_LIBPROTOBUF protobuf::libprotobuf)
 set(_PROTOBUF_PROTOC $<TARGET_FILE:protobuf::protoc>)
 
