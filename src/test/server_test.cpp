@@ -46,7 +46,8 @@ namespace server {
         proto::LoginRequest request;
         request.mutable_metadata()->set_client_id("test");
         request.set_log_information("Hello");
-        EXPECT_TRUE(client.Write(request));
+        grpc::Status status;
+        EXPECT_TRUE(client.Write(request, &status));
         EXPECT_EQ(client.response().check_information(), "Hello");
     }
 

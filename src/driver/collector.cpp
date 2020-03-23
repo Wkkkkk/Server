@@ -77,7 +77,6 @@ CarInfoCollector::CarInfoCollector(boost::asio::io_service &io, size_t interval,
 
 CarInfoCollector::~CarInfoCollector() {
     client_.StreamWritesDone();
-    client_.StreamWritesDone();
 }
 
 void CarInfoCollector::Update() {

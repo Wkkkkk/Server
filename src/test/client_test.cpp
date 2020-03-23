@@ -39,6 +39,5 @@ namespace driver {
             Status status;
             EXPECT_FALSE(client.Write(request, &status));
         }
-
     }  // namespace
 }  // namespace async_grpc

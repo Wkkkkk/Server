@@ -3,7 +3,7 @@
 
 #include "map_sender.h"
 
-DEFINE_string(kServerAddress, "192.168.0.250:9898", "server host:port");
+DEFINE_string(kServerAddress, "192.168.0.254:9898", "server host:port");
 
 int main(int argc, char *argv[]) {
     google::ParseCommandLineFlags(&argc, &argv, true);
